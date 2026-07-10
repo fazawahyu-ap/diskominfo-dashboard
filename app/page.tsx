@@ -13,7 +13,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Mendefinisikan struktur tipe data dari API Laravel
 interface DashboardData {
   total_reach: number;
   total_impressions: number;
@@ -25,12 +24,15 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
-  // Fungsi untuk menarik data dari API Laravel
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Mengarahkan Axios ke server lokal Laravel kamu
-        const response = await axios.get("http://127.0.0.1:8000/api/dashboard-summary");
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://127.0.0.1:8000/api/dashboard-summary", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         setSummaryData(response.data.data);
         setIsLoading(false);
       } catch (error) {
@@ -43,82 +45,82 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  // Menyiapkan format data untuk grafik Recharts
   const chartData = summaryData
     ? [
-        { name: "Reach", value: summaryData.total_reach, fill: "#64748b" }, // slate-500
-        { name: "Impressions", value: summaryData.total_impressions, fill: "#475569" }, // slate-600
-        { name: "Engagement", value: summaryData.total_engagement, fill: "#334155" }, // slate-700
+        { name: "Reach", value: summaryData.total_reach, fill: "#64748b" },
+        { name: "Impressions", value: summaryData.total_impressions, fill: "#475569" },
+        { name: "Engagement", value: summaryData.total_engagement, fill: "#334155" },
       ]
     : [];
 
-  // Tampilan saat data sedang dimuat
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-slate-500">
-        <Activity className="animate-spin mb-4" size={32} />
-        <p>Memuat data analitik...</p>
+        <Activity className="animate-spin mb-4" size={24} />
+        <p className="text-xs uppercase tracking-widest">Memuat data...</p>
       </div>
     );
   }
 
-  // Tampilan saat API gagal dihubungi (misal server Laravel mati)
   if (isError || !summaryData) {
     return (
-      <div className="p-6 bg-red-50 border border-red-100 rounded-lg text-red-600">
-        <p className="font-semibold">Gagal memuat data dari server.</p>
-        <p className="text-sm mt-1">Pastikan server Laravel berjalan di http://127.0.0.1:8000</p>
+      <div className="p-4 bg-red-50 border border-red-200 text-red-600">
+        <p className="text-sm font-bold uppercase tracking-wide">Gagal memuat data</p>
+        <p className="text-xs mt-1">Pastikan server API berjalan dan Anda memiliki akses.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">Ringkasan Kampanye Publik</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Pantauan performa metrik seluruh saluran komunikasi Diskominfo
+      {/* Header Area */}
+      <div className="border-b border-slate-200 pb-3">
+        <h1 className="text-base font-bold text-slate-800 uppercase tracking-wide">
+          Ringkasan Kampanye Publik
+        </h1>
+        <p className="text-xs text-slate-500 mt-1">
+          Pantauan performa metrik seluruh saluran komunikasi Diskominfo.
         </p>
       </div>
 
       {/* Tampilan Kartu Ringkasan (Stat Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-5 border border-slate-200 hover:border-slate-300 transition-colors">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
-              <Users size={24} />
+            <div className="p-3 bg-slate-50 border border-slate-100 text-slate-600">
+              <Users size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Reach</p>
-              <h3 className="text-2xl font-bold text-slate-800">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Reach</p>
+              <h3 className="text-xl font-bold text-slate-800 mt-0.5">
                 {summaryData.total_reach.toLocaleString("id-ID")}
               </h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 border border-slate-200 hover:border-slate-300 transition-colors">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
-              <Eye size={24} />
+            <div className="p-3 bg-slate-50 border border-slate-100 text-slate-600">
+              <Eye size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Impressions</p>
-              <h3 className="text-2xl font-bold text-slate-800">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Impressions</p>
+              <h3 className="text-xl font-bold text-slate-800 mt-0.5">
                 {summaryData.total_impressions.toLocaleString("id-ID")}
               </h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 border border-slate-200 hover:border-slate-300 transition-colors">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
-              <MousePointerClick size={24} />
+            <div className="p-3 bg-slate-50 border border-slate-100 text-slate-600">
+              <MousePointerClick size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Engagement</p>
-              <h3 className="text-2xl font-bold text-slate-800">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Engagement</p>
+              <h3 className="text-xl font-bold text-slate-800 mt-0.5">
                 {summaryData.total_engagement.toLocaleString("id-ID")}
               </h3>
             </div>
@@ -127,20 +129,40 @@ export default function Dashboard() {
       </div>
 
       {/* Tampilan Area Grafik Batang */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-96">
-        <h2 className="text-lg font-semibold text-slate-800 mb-6">Perbandingan Metrik Utama</h2>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-            <Tooltip
-              cursor={{ fill: '#f8fafc' }}
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-            />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={60} />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="bg-white p-6 border border-slate-200 h-96 flex flex-col">
+        <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-3 mb-6">
+          Perbandingan Metrik Utama
+        </h2>
+        <div className="flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} 
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748b', fontSize: 11 }} 
+              />
+              <Tooltip
+                cursor={{ fill: '#f8fafc' }}
+                contentStyle={{ 
+                  borderRadius: '0px', // Menghapus sudut melengkung pada tooltip
+                  border: '1px solid #e2e8f0', 
+                  boxShadow: 'none',
+                  fontSize: '12px'
+                }}
+              />
+              {/* Radius diatur ke 0 agar grafik batang berbentuk kotak kaku */}
+              <Bar dataKey="value" radius={[0, 0, 0, 0]} barSize={50} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
