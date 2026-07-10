@@ -1,65 +1,147 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Users, Eye, MousePointerClick, Activity } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+// Mendefinisikan struktur tipe data dari API Laravel
+interface DashboardData {
+  total_reach: number;
+  total_impressions: number;
+  total_engagement: number;
+}
+
+export default function Dashboard() {
+  const [summaryData, setSummaryData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  // Fungsi untuk menarik data dari API Laravel
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Mengarahkan Axios ke server lokal Laravel kamu
+        const response = await axios.get("http://127.0.0.1:8000/api/dashboard-summary");
+        setSummaryData(response.data.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Gagal mengambil data dari API:", error);
+        setIsError(true);
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Menyiapkan format data untuk grafik Recharts
+  const chartData = summaryData
+    ? [
+        { name: "Reach", value: summaryData.total_reach, fill: "#64748b" }, // slate-500
+        { name: "Impressions", value: summaryData.total_impressions, fill: "#475569" }, // slate-600
+        { name: "Engagement", value: summaryData.total_engagement, fill: "#334155" }, // slate-700
+      ]
+    : [];
+
+  // Tampilan saat data sedang dimuat
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] text-slate-500">
+        <Activity className="animate-spin mb-4" size={32} />
+        <p>Memuat data analitik...</p>
+      </div>
+    );
+  }
+
+  // Tampilan saat API gagal dihubungi (misal server Laravel mati)
+  if (isError || !summaryData) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-100 rounded-lg text-red-600">
+        <p className="font-semibold">Gagal memuat data dari server.</p>
+        <p className="text-sm mt-1">Pastikan server Laravel berjalan di http://127.0.0.1:8000</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800">Ringkasan Kampanye Publik</h1>
+        <p className="text-slate-500 text-sm mt-1">
+          Pantauan performa metrik seluruh saluran komunikasi Diskominfo
+        </p>
+      </div>
+
+      {/* Tampilan Kartu Ringkasan (Stat Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
+              <Users size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Total Reach</p>
+              <h3 className="text-2xl font-bold text-slate-800">
+                {summaryData.total_reach.toLocaleString("id-ID")}
+              </h3>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
+              <Eye size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Total Impressions</p>
+              <h3 className="text-2xl font-bold text-slate-800">
+                {summaryData.total_impressions.toLocaleString("id-ID")}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-50 text-slate-600 rounded-lg">
+              <MousePointerClick size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Total Engagement</p>
+              <h3 className="text-2xl font-bold text-slate-800">
+                {summaryData.total_engagement.toLocaleString("id-ID")}
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tampilan Area Grafik Batang */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-96">
+        <h2 className="text-lg font-semibold text-slate-800 mb-6">Perbandingan Metrik Utama</h2>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+            <Tooltip
+              cursor={{ fill: '#f8fafc' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={60} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
